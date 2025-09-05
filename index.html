@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Deadspot Miner + Clicker</title>
+  <style>
+    body {
+      background:#0d0d0d;
+      color:#eee;
+      font-family: monospace;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { color:#4caf50; }
+    #deadspotBalance { font-size:22px; margin:10px; color:#ffd700; }
+    #energyBar {
+      width: 300px; height: 20px; border:1px solid #444; margin:10px auto;
+      background:#222; border-radius:5px; overflow:hidden;
+    }
+    #energyFill { height:100%; width:100%; background:#4caf50; }
+
+    /* Bouton clicker personnalisé */
+    #clickBtn {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: #111;
+      border: 3px solid #444;
+      margin: 20px auto;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    #clickBtn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #clickBtn:hover {
+      transform: scale(1.05);
+      border-color: #f00;
+    }
+
+    button {
+      background:#333; color:#eee; padding:10px 20px; border:none;
+      border-radius:5px; margin:5px; cursor:pointer;
+    }
+    button:hover { background:#555; }
+
+    canvas {
+      margin-top: 20px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
+    }
+    #xmrigLogs {
+      margin-top:20px; max-height:250px; overflow-y:auto; background:#111;
+      border:1px solid #444; padding:10px; text-align:left; font-size:13px;
+    }
+    .logAccepted { color:#4caf50; }
+    .logRejected { color:#f44336; }
+
+    /* Progression échange */
+    #exchangeProgress {
+      width: 300px;
+      height: 20px;
+      border: 1px solid #444;
+      background: #222;
+      border-radius: 5px;
+      margin: 10px auto;
+      overflow: hidden;
+    }
+    #exchangeFill {
+      height: 100%;
+      width: 0%;
+      background: #ff0000;
+    }
+  </style>
+</head>
+<body>
+  <h1>💎 Deadspot Miner + Clicker Game</h1>
+  <div id="deadspotBalance">Deadspot: 0</div>
+  <div id="energyBar"><div id="energyFill"></div></div>
+
+  <!-- Bouton avec tête de mort diabolique intégrée -->
+  <div id="clickBtn">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgdmlld0JveD0iMCAwIDI0MCAyNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTExMiwyMGMyNywtMyw1NywyMSw2MCw0OGwzLDk2Yy0yLDEyLC0xMiwyMiwtMjQsMjJsLTI0LDBjLTEyLDAtMjYsLTEwLC0yNCwtMjJsMy05NmMyLC0yNywyNywtNTEsNTQtNDh6IiBmaWxsPSIjZmYwMDAwIi8+CiAgPGNpcmNsZSBjeD0iOTAiIGN5PSIxMDAiIHI9IjEwIiBmaWxsPSIjMDAwMDAwIi8+CiAgPGNpcmNsZSBjeD0iMTUwIiBjeT0iMTAwIiByPSIxMCIgZmlsbD0iIzAwMDAwMCIvPgo8L3N2Zz4=" alt="skull">
+  </div>
+
+  <button id="exchangeBtn">🔄 Convertir Hashes → Deadspot</button>
+
+  <!-- Barre progression Hashes -->
+  <div id="exchangeProgress"><div id="exchangeFill"></div></div>
+
+  <h2>📊 Hashrate</h2>
+  <div id="currentHps">H/s: 0.00</div>
+  <div id="totalHashes">Total Hashes: 0</div>
+  <canvas id="hashrateChart" width="600" height="200"></canvas>
+
+  <h2>📜 Logs XMRig</h2>
+  <div id="xmrigLogs"></div>
+
+  <h3>⚡ Améliorations</h3>
+  <button onclick="buyUpgrade('x2')">x2 Click (Coût: 5 DSC)</button>
+  <button onclick="buyUpgrade('auto')">Auto-Click (Coût: 10 DSC)</button>
+  <button onclick="buyUpgrade('regen')">Énergie+ (Coût: 8 DSC)</button>
+  <button onclick="buyUpgrade('multi')">x5 Revenus (Coût: 20 DSC)</button>
+
+  <p style="margin-top:20px; color:#aaa;">
+    🚀 Deadspot-Token Airdrop prévu le <b>29 mars 2026</b>
+  </p>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Script minage fonctionnel -->
+  <script>
+    let deadspot = parseFloat(localStorage.getItem("deadspot")) || 0;
+    let upgrades = JSON.parse(localStorage.getItem("upgrades")) || {x2:false, auto:false, regen:false, multi:false};
+    let energy = 100, maxEnergy = 100;
+    let regenRate = upgrades.regen ? 2 : 1;
+    let clickValue = 0.00015;
+    let autoClickInterval = null;
+
+    // Hashes simulés
+    let totalHashes = parseInt(localStorage.getItem("totalHashes")) || 0;
+    let currentHps = 0;
+    let threads = 4;
+
+    function saveGame() {
+        localStorage.setItem("deadspot", deadspot);
+        localStorage.setItem("upgrades", JSON.stringify(upgrades));
+        localStorage.setItem("totalHashes", totalHashes);
+    }
+
+    function updateUI() {
+        document.getElementById("deadspotBalance").textContent = "Deadspot: " + deadspot.toFixed(5);
+        document.getElementById("energyFill").style.width = (energy/maxEnergy*100) + "%";
+        const percent = Math.min(100, totalHashes/10000000*100);
+        document.getElementById("exchangeFill").style.width = percent+"%";
+    }
+
+    // Click bouton
+    document.getElementById("clickBtn").addEventListener("click", () => {
+        if(energy > 0){
+            let gain = clickValue;
+            if(upgrades.x2) gain *= 2;
+            if(upgrades.multi) gain *= 5;
+            deadspot += gain;
+            energy--;
+            updateUI();
+            saveGame();
+        }
+    });
+
+    // Regénération d'énergie
+    setInterval(() => {
+        if (energy < maxEnergy) {
+            energy = Math.min(maxEnergy, energy + regenRate);
+            updateUI();
+        }
+    }, 1000);
+
+    function startAutoClick() {
+        if(autoClickInterval) return;
+        autoClickInterval = setInterval(() => {
+            if(energy > 0){
+                let gain = clickValue;
+                if(upgrades.x2) gain *= 2;
+                if(upgrades.multi) gain *= 5;
+                deadspot += gain;
+                energy--;
+                updateUI();
+                saveGame();
+            }
+        }, 1000);
+    }
+
+    function buyUpgrade(type){
+        if(type === "x2" && !upgrades.x2 && deadspot >=5){ deadspot -=5; upgrades.x2=true; }
+        if(type === "auto" && !upgrades.auto && deadspot >=10){ deadspot -=10; upgrades.auto=true; startAutoClick(); }
+        if(type === "regen" && !upgrades.regen && deadspot >=8){ deadspot -=8; upgrades.regen=true; regenRate=2; }
+        if(type === "multi" && !upgrades.multi && deadspot >=20){ deadspot -=20; upgrades.multi=true; }
+        saveGame(); updateUI();
+    }
+
+    // --- Minage simulé ---
+    const currentHpsDisplay = document.getElementById("currentHps");
+    const totalHashesDisplay = document.getElementById("totalHashes");
+    const xmrigLogs = document.getElementById("xmrigLogs");
+    const ctx = document.getElementById('hashrateChart').getContext('2d');
+    const hashrateChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [{label:'H/s', data:[], borderColor:'#4caf50', fill:true, tension:0.3}] },
+        options: { responsive:false, animation:false, plugins:{legend:{labels:{color:'#eee'}}},
+            scales:{ x:{ticks:{color:'#aaa'}}, y:{ticks:{color:'#aaa'}} } }
+    });
+
+    let time = 0;
+    setInterval(() => {
+        let totalThisSecond = 0;
+        for(let i=0;i<threads;i++){
+            const coreHps = Math.random()*50 + 50;
+            totalThisSecond += coreHps;
+            const isAccepted = Math.random()>0.05;
+            const logLine = `[${new Date().toLocaleTimeString()}] Core #${i} | ${coreHps.toFixed(2)} H/s | ${isAccepted?"Accepted":"Rejected"}`;
+            const span = document.createElement("span");
+            span.className = isAccepted?"logAccepted":"logRejected";
+            span.textContent = logLine;
+            xmrigLogs.appendChild(span);
+            xmrigLogs.appendChild(document.createElement("br"));
+        }
+        currentHps = totalThisSecond;
+        totalHashes += totalThisSecond;
+
+        currentHpsDisplay.textContent = "H/s: "+currentHps.toFixed(2);
+        totalHashesDisplay.textContent = "Total Hashes: "+Math.floor(totalHashes);
+
+        hashrateChart.data.labels.push(time+"s");
+        hashrateChart.data.datasets[0].data.push(currentHps);
+        if(hashrateChart.data.labels.length > 20){
+            hashrateChart.data.labels.shift();
+            hashrateChart.data.datasets[0].data.shift();
+        }
+        hashrateChart.update();
+
+        updateUI();
+        saveGame();
+        time++;
+    },1000);
+
+    // Échange Hashes → Deadspot
+    document.getElementById("exchangeBtn").addEventListener("click",()=>{
+        if(totalHashes>=10000000){
+            const dscGain = Math.floor(totalHashes/10000000);
+            deadspot += dscGain;
+            totalHashes %= 10000000;
+            updateUI(); saveGame();
+            alert("Échange réussi: +" + dscGain + " DSC");
+        }else{
+            alert("Pas assez de hashes (min 10M)");
+        }
+    });
+
+    // Démarrage auto click si déjà acheté
+    if(upgrades.auto) startAutoClick();
+    updateUI();
+  </script>
+</body>
+</html>
